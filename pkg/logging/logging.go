@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"20dojo-online/pkg/dcontext"
 	"log"
 	"net/http"
 
@@ -16,7 +17,7 @@ func AccessLogging(request *http.Request) {
 		zap.String("remoteAddress", request.RemoteAddr),
 		zap.String("method", request.Method),
 		zap.String("path", request.URL.Path),
-		zap.Any("requestID", request.Context().Value("RequestID")))
+		zap.String("requestID", dcontext.GetRequestIDFromContext(request.Context())))
 }
 
 func NewAccessLogger() {
