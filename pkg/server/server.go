@@ -43,21 +43,21 @@ func Serve(addr string) {
 	rand.Seed(time.Now().UnixNano())
 
 	/* ===== URLマッピングを行う ===== */
-	http.HandleFunc("/setting/get", get(settingHandler.HandleSettingGet))
-	http.HandleFunc("/user/create", post(userHandler.HandleUserCreate))
+	http.HandleFunc("/setting/get", get(middleware.AccessLogging(settingHandler.HandleSettingGet)))
+	http.HandleFunc("/user/create", post(middleware.AccessLogging(userHandler.HandleUserCreate)))
 	http.HandleFunc("/user/get",
-		get(authMiddleware.Authenticate(userHandler.HandleUserGet)))
+		get(authMiddleware.Authenticate(middleware.AccessLogging(userHandler.HandleUserGet))))
 	http.HandleFunc("/user/update",
-		post(authMiddleware.Authenticate(userHandler.HandleUserUpdate)))
+		post(authMiddleware.Authenticate(middleware.AccessLogging(userHandler.HandleUserUpdate))))
 
-	http.HandleFunc("/game/finish", post(authMiddleware.Authenticate(gameHandler.HandleGameFinish)))
+	http.HandleFunc("/game/finish", post(middleware.AccessLogging(authMiddleware.Authenticate(gameHandler.HandleGameFinish))))
 
-	http.HandleFunc("/gacha/draw", post(authMiddleware.Authenticate(gachaHandler.HandleGachaDraw)))
+	http.HandleFunc("/gacha/draw", post(middleware.AccessLogging(authMiddleware.Authenticate(gachaHandler.HandleGachaDraw))))
 
-	http.HandleFunc("/ranking/list", get(authMiddleware.Authenticate(rankingHandler.HandleRankingList)))
+	http.HandleFunc("/ranking/list", get(middleware.AccessLogging(authMiddleware.Authenticate(rankingHandler.HandleRankingList))))
 
-	http.HandleFunc("/collection/list", get(authMiddleware.Authenticate(collectionHandler.HandleUserCollectionList)))
-  
+	http.HandleFunc("/collection/list", get(middleware.AccessLogging(authMiddleware.Authenticate(collectionHandler.HandleUserCollectionList))))
+
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
 	err := http.ListenAndServe(addr, nil)

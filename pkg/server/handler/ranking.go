@@ -37,7 +37,6 @@ func NewRankingHandler(httpResponse response.HttpResponseInterface, rankingServi
 
 // HandleRankingList ランキング情報取得
 func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *http.Request) {
-
 	// クエリストリングから開始順位の受け取り
 	param := request.URL.Query().Get("start")
 	start, err := strconv.Atoi(param)
