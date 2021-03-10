@@ -3,28 +3,38 @@ package logging
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var accessLogger *zap.SugaredLogger
 
 func AccessLogging(request *http.Request) {
 	accessLogger.Infow("incoming request",
-		zap.String("Host", request.Host),
-		zap.String("RemoteAddr", request.RemoteAddr),
-		zap.String("Request Method", request.Method),
-		zap.String("Path", request.URL.Path),
-		zap.Any("RequestID", request.Context().Value("RequestID")),
-		zap.Duration("elapsed", time.Second))
+		zap.String("host", request.Host),
+		zap.String("remoteAddress", request.RemoteAddr),
+		zap.String("method", request.Method),
+		zap.String("path", request.URL.Path),
+		zap.Any("requestID", request.Context().Value("RequestID")))
 }
 
 func NewAccessLogger() {
 	config := zap.Config{
-		Encoding:    "json",
-		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
-		OutputPaths: []string{"pkg/logging/log/access.log"},
+		Encoding:         "json",
+		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		OutputPaths:      []string{"pkg/logging/log/access.log"},
+		ErrorOutputPaths: []string{"pkg/logging/log/access.log"},
+		EncoderConfig: zapcore.EncoderConfig{
+			MessageKey:    "message",
+			LevelKey:      "level",
+			EncodeLevel:   zapcore.CapitalLevelEncoder,
+			TimeKey:       "time",
+			EncodeTime:    zapcore.ISO8601TimeEncoder,
+			CallerKey:     "caller",
+			EncodeCaller:  zapcore.ShortCallerEncoder,
+			StacktraceKey: "stackTrace",
+		},
 	}
 	logger, err := config.Build()
 	if err != nil {
