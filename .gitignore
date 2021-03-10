@@ -23,3 +23,6 @@ dojo-api
 # GoLand
 .idea/*
 .env
+
+# log file
+pkg/logging/log/*

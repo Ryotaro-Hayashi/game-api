@@ -3,6 +3,7 @@ package handler
 import (
 	"20dojo-online/pkg/constant"
 	"20dojo-online/pkg/http/response"
+	"20dojo-online/pkg/logging"
 	"20dojo-online/pkg/myerror"
 	"20dojo-online/pkg/server/service"
 	"fmt"
@@ -37,6 +38,8 @@ func NewRankingHandler(httpResponse response.HttpResponseInterface, rankingServi
 
 // HandleRankingList ランキング情報取得
 func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *http.Request) {
+	// アクセスログを記録
+	logging.AccessLogging(request)
 
 	// クエリストリングから開始順位の受け取り
 	param := request.URL.Query().Get("start")
