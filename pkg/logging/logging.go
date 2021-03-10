@@ -4,6 +4,7 @@ import (
 	"20dojo-online/pkg/dcontext"
 	"log"
 	"net/http"
+	"os"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -20,10 +21,10 @@ func AccessLogging(request *http.Request) {
 		zap.String("requestID", dcontext.GetRequestIDFromContext(request.Context())))
 }
 
-func NewAccessLogger() {
+func NewAccessLogger(zapCoreLevel zapcore.Level) {
 	config := zap.Config{
 		Encoding:         "json",
-		Level:            zap.NewAtomicLevelAt(zap.InfoLevel),
+		Level:            zap.NewAtomicLevelAt(zapCoreLevel),
 		OutputPaths:      []string{"pkg/logging/log/access.log"},
 		ErrorOutputPaths: []string{"pkg/logging/log/access.log"},
 		EncoderConfig: zapcore.EncoderConfig{
@@ -45,5 +46,12 @@ func NewAccessLogger() {
 }
 
 func init() {
-	NewAccessLogger()
+	env := os.Getenv("ENV")
+	var zapCoreLevel zapcore.Level
+	if env == "production" {
+		zapCoreLevel = zap.InfoLevel
+	} else {
+		zapCoreLevel = zap.DebugLevel
+	}
+	NewAccessLogger(zapCoreLevel)
 }
