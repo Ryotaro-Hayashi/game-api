@@ -37,5 +37,5 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s:%s@tcp(%s:%s)/%s", user, password, host, port, database)
+	fmt.Printf("%s:%s@tcp(%s:%s)/%s\n", user, password, host, port, database)
 }
