@@ -28,13 +28,10 @@ func NewAccessLogger(zapCoreLevel zapcore.Level) {
 		OutputPaths:      []string{"pkg/logging/log/access.log"},
 		ErrorOutputPaths: []string{"pkg/logging/log/access.log"},
 		EncoderConfig: zapcore.EncoderConfig{
-			MessageKey:    "message",
 			LevelKey:      "level",
 			EncodeLevel:   zapcore.CapitalLevelEncoder,
 			TimeKey:       "time",
 			EncodeTime:    zapcore.ISO8601TimeEncoder,
-			CallerKey:     "caller",
-			EncodeCaller:  zapcore.ShortCallerEncoder,
 			StacktraceKey: "stackTrace",
 		},
 	}
