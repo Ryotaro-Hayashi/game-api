@@ -11,6 +11,7 @@ import (
 )
 
 var accessLogger *zap.SugaredLogger
+var ApplicationLogger *zap.Logger
 
 func AccessLogging(request *http.Request) {
 	accessLogger.Infow("incoming request",
@@ -41,6 +42,40 @@ func NewAccessLogger(zapCoreLevel zapcore.Level) {
 	accessLogger = logger.Sugar()
 }
 
+func NewApplicationLogging(zapCoreLevel zapcore.Level) *zap.Logger {
+	encoderConfig := zapcore.EncoderConfig{
+		LevelKey:     "level",
+		TimeKey:      "time",
+		CallerKey:    "caller",
+		MessageKey:   "msg",
+		EncodeLevel:  zapcore.CapitalLevelEncoder,
+		EncodeTime:   zapcore.ISO8601TimeEncoder,
+		EncodeCaller: zapcore.ShortCallerEncoder,
+	}
+
+	file, err := os.Create("pkg/logging/log/application.log")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	consoleCore := zapcore.NewCore(
+		zapcore.NewConsoleEncoder(encoderConfig),
+		zapcore.AddSync(os.Stdout),
+		zapcore.DebugLevel,
+	)
+
+	logCore := zapcore.NewCore(
+		zapcore.NewJSONEncoder(encoderConfig),
+		zapcore.AddSync(file),
+		zapCoreLevel,
+	)
+
+	return zap.New(zapcore.NewTee(
+		consoleCore,
+		logCore,
+	))
+}
+
 func init() {
 	env := os.Getenv("ENV")
 	var zapCoreLevel zapcore.Level
@@ -49,5 +84,11 @@ func init() {
 	} else {
 		zapCoreLevel = zap.DebugLevel
 	}
+
 	NewAccessLogger(zapCoreLevel)
+	ApplicationLogger = NewApplicationLogging(zapCoreLevel)
+	ApplicationLogger = ApplicationLogger.WithOptions(zap.AddCaller())
+
+	defer accessLogger.Sync()
+	defer ApplicationLogger.Sync()
 }

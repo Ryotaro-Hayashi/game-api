@@ -2,13 +2,16 @@ package handler
 
 import (
 	"20dojo-online/pkg/constant"
+	"20dojo-online/pkg/dcontext"
 	"20dojo-online/pkg/http/response"
+	"20dojo-online/pkg/logging"
 	"20dojo-online/pkg/myerror"
 	"20dojo-online/pkg/server/service"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
+
+	"go.uber.org/zap"
 )
 
 type rankingListResponse struct {
@@ -37,15 +40,18 @@ func NewRankingHandler(httpResponse response.HttpResponseInterface, rankingServi
 
 // HandleRankingList ランキング情報取得
 func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *http.Request) {
+	requestID := dcontext.GetRequestIDFromContext(request.Context())
+	logging.ApplicationLogger.Info("start getting rank info list", zap.String("requestID", requestID))
+
 	// クエリストリングから開始順位の受け取り
 	param := request.URL.Query().Get("start")
 	start, err := strconv.Atoi(param)
 	if err != nil {
 		err = myerror.ApplicationError{
-			Message: "failed to get query parameter",
+			Message: "failed to strconv.Atoi()",
 			Code:    http.StatusBadRequest,
 		}
-		log.Println(err)
+		logging.ApplicationLogger.Warn("failed to strconv.Atoi()", zap.String("requestID", requestID))
 		h.HttpResponse.Failed(writer, err)
 		return
 	}
@@ -55,10 +61,11 @@ func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *
 			Message: fmt.Sprintf("start rank is 0 or less. start=%d", start),
 			Code:    http.StatusBadRequest,
 		}
-		log.Println(err)
+		logging.ApplicationLogger.Warn("start rank is 0 or less", zap.String("requestID", requestID))
 		h.HttpResponse.Failed(writer, err)
 		return
 	}
+	logging.ApplicationLogger.Debug("success in getting query parameter", zap.String("requestID", requestID), zap.Int("query", start))
 
 	// ランキング情報取得のロジック
 	res, err := h.RankingService.GetRankInfoList(&service.GetRankInfoListRequest{
@@ -71,7 +78,7 @@ func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *
 			OriginalError: err,
 			Code:          http.StatusInternalServerError,
 		}
-		log.Println(err)
+		logging.ApplicationLogger.Error("failed to finish game correctly", zap.String("requestID", requestID))
 		h.HttpResponse.Failed(writer, err)
 		return
 	}
@@ -88,5 +95,6 @@ func (h *RankingHandler) HandleRankingList(writer http.ResponseWriter, request *
 		ranks = append(ranks, rank)
 	}
 
+	logging.ApplicationLogger.Info("success in finishing game", zap.String("requestID", requestID))
 	h.HttpResponse.Success(writer, rankingListResponse{Ranks: ranks})
 }
