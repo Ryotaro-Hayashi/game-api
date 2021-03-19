@@ -45,13 +45,35 @@ services:
       - ./prometheus:/etc/prometheus/
     ports:
       - 127.0.0.1:9090:9090
+#    restart: always
 
-  exporter:
-    image: prom/node-exporter:latest
+#  exporter:
+#    image: prom/node-exporter:latest
+#    container_name: node-exporter
+#    ports:
+#      - 9100:9100
+##    restart: always
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter
     container_name: node-exporter
+#    restart: always
     ports:
       - 9100:9100
-#    restart: always
+    volumes:
+      - /proc:/host/proc
+      - /sys:/host/sys
+      - /:/rootfs
+
+  prom_mysql_exporter:
+    image: prom/mysqld-exporter
+    container_name: prom_mysql_exporter
+    links:
+      - mysql
+    ports:
+      - '9104:9104'
+    environment:
+      DATA_SOURCE_NAME: root:ca-tech-dojo@(127.0.0.1:3306)/dojo_ap
 
   grafana:
     image: grafana/grafana

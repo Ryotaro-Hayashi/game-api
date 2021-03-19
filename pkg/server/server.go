@@ -12,6 +12,8 @@ import (
 
 	"20dojo-online/pkg/server/handler"
 	"20dojo-online/pkg/server/model"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -57,6 +59,8 @@ func Serve(addr string) {
 	http.HandleFunc("/ranking/list", get(middleware.AccessLogging(authMiddleware.Authenticate(rankingHandler.HandleRankingList))))
 
 	http.HandleFunc("/collection/list", get(middleware.AccessLogging(authMiddleware.Authenticate(collectionHandler.HandleUserCollectionList))))
+
+	http.Handle("/metrics", promhttp.Handler())
 
 	/* ===== サーバの起動 ===== */
 	log.Println("Server running...")
